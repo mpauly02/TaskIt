@@ -1,14 +1,18 @@
 package com.example.michaelpauly.taskit;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -30,6 +34,15 @@ public class TaskListActivity extends Activity {
 
         ListView listView = (ListView)findViewById(R.id.task_list);
         listView.setAdapter(new TaskAdapter(items));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent i = new Intent(TaskListActivity.this, TaskActivity.class);
+                Task task = (Task)parent.getAdapter().getItem(position);
+                i.putExtra(TaskActivity.EXTRA, task);
+                startActivity(i);
+            }
+        });
     }
 
     private class TaskAdapter extends ArrayAdapter<Task> {
@@ -40,6 +53,12 @@ public class TaskListActivity extends Activity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             convertView = super.getView(position, convertView, parent);
+            Task task = getItem(position);
+            TextView taskName = (TextView)convertView.findViewById(R.id.task_item_name);
+            taskName.setText(task.getName());
+
+            CheckBox doneBox = (CheckBox)convertView.findViewById(R.id.task_item_done);
+            doneBox.setChecked(task.isDone());
 
             return convertView;
         }
