@@ -36,6 +36,10 @@ public class TaskActivity extends AppCompatActivity {
 
         mTask = (Task)getIntent().getSerializableExtra(EXTRA);
 
+        if (mTask == null) {
+            mTask = new Task();
+        }
+
         mCal = Calendar.getInstance();
 
         mTaskNameInput = (EditText)findViewById(R.id.task_name);

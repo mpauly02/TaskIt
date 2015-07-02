@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +23,7 @@ import java.util.Date;
 public class TaskListActivity extends AppCompatActivity {
 
     private static final int EDIT_TASK_REQUEST = 10;
+    private static final int CREATE_TASK_REQUEST = 5;
 
     private ArrayList<Task> mTasks;
     private int mLastPositionClicked;
@@ -49,22 +51,38 @@ public class TaskListActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mLastPositionClicked = position;
                 Intent i = new Intent(TaskListActivity.this, TaskActivity.class);
-                Task task = (Task)parent.getAdapter().getItem(position);
+                Task task = (Task) parent.getAdapter().getItem(position);
                 i.putExtra(TaskActivity.EXTRA, task);
                 startActivityForResult(i, EDIT_TASK_REQUEST);
             }
         });
+
+        listView.getSelectedItemPosition();
+
+        registerForContextMenu(listView);
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == EDIT_TASK_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                Task task = (Task)data.getSerializableExtra(TaskActivity.EXTRA);
-                mTasks.set(mLastPositionClicked, task);
-                mAdapter.notifyDataSetChanged();
-            }
+
+        switch (requestCode) {
+            case EDIT_TASK_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Task task = (Task)data.getSerializableExtra(TaskActivity.EXTRA);
+                    mTasks.set(mLastPositionClicked, task);
+                    mAdapter.notifyDataSetChanged();
+                }
+                break;
+            case CREATE_TASK_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Task task = (Task) data.getSerializableExtra(TaskActivity.EXTRA);
+                    mTasks.add(task);
+                    mAdapter.notifyDataSetChanged();
+                    break;
+                }
+            default:
         }
     }
 
@@ -102,10 +120,23 @@ public class TaskListActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.add_task) {
+            Intent i = new Intent(TaskListActivity.this, TaskActivity.class);
+            startActivityForResult(i, CREATE_TASK_REQUEST);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.menu_task_list_context, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        return super.onContextItemSelected(item);
     }
 }
