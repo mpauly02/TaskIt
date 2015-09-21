@@ -34,7 +34,7 @@ public class TaskListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task_list);
 
-        mTasks = new ArrayList<Task>();
+        mTasks = new ArrayList<>(); //was "mTasks = new ArrayList<Task>()", was prompted to change
         mTasks.add(new Task());
         mTasks.add(new Task());
         mTasks.add(new Task());
@@ -59,6 +59,9 @@ public class TaskListActivity extends AppCompatActivity {
 
         listView.getSelectedItemPosition();
 
+
+
+        //Don't need to register context menu
         registerForContextMenu(listView);
 
     }
@@ -137,6 +140,13 @@ public class TaskListActivity extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id == R.id.delete_task) {
+            AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+            mTasks.remove(menuInfo.position);
+            mAdapter.notifyDataSetChanged();
+            return true;
+        }
         return super.onContextItemSelected(item);
     }
 }
