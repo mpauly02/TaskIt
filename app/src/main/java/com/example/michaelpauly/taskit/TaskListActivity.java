@@ -1,15 +1,17 @@
 package com.example.michaelpauly.taskit;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.util.SparseBooleanArray;
+import android.view.ActionMode;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -24,10 +26,12 @@ public class TaskListActivity extends AppCompatActivity {
 
     private static final int EDIT_TASK_REQUEST = 10;
     private static final int CREATE_TASK_REQUEST = 5;
+    private static final String TAG = "TaskListActivity";
 
     private ArrayList<Task> mTasks;
     private int mLastPositionClicked;
     private TaskAdapter mAdapter;
+    private ListView mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +47,10 @@ public class TaskListActivity extends AppCompatActivity {
         mTasks.get(1).setName("Task 2");
         mTasks.get(2).setName("Task 3");
 
-        ListView listView = (ListView)findViewById(R.id.task_list);
+        mListView = (ListView)findViewById(R.id.task_list);
         mAdapter = new TaskAdapter(mTasks);
-        listView.setAdapter(mAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setAdapter(mAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mLastPositionClicked = position;
@@ -57,12 +61,53 @@ public class TaskListActivity extends AppCompatActivity {
             }
         });
 
-        listView.getSelectedItemPosition();
+        mListView.getSelectedItemPosition();
+        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        mListView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
+            @Override
+            public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+                Log.d(TAG, "Position is " + position + ", Checked is " + checked);
 
+            }
+
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                getMenuInflater().inflate(R.menu.menu_task_list_context, menu);
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                return false;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                int id = item.getItemId();
+                SparseBooleanArray positions = mListView.getCheckedItemPositions();
+                if (id == R.id.delete_task) {
+                    for (int i = positions.size() - 1; i >= 0; i--) { //if you try going 0 -> positions.size, there will be error when you delete
+                        Log.d(TAG, "Key is "+positions.keyAt(i)+", Value is "+positions.valueAt(i));
+                        if (positions.valueAt(i)) {
+                            mTasks.remove(positions.keyAt(i));
+                        }
+                    }
+                    mode.finish();
+                    mAdapter.notifyDataSetChanged();
+                    return true;
+                }
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+
+            }
+        });
 
 
         //Don't need to register context menu
-        registerForContextMenu(listView);
+        //registerForContextMenu(mListView);
 
     }
 
